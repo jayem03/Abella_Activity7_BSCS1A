@@ -3,9 +3,9 @@ const filters = document.querySelectorAll(".filters span");
 const clearAll = document.querySelector(".clear-btn");
 const taskBox = document.querySelector(".task-box");
 
-let editId;
-let isEditTask = false;
-let todos = JSON.parse(localStorage.getItem("todo-list")) || [];
+let editId,
+  isEditTask = false,
+  todos = JSON.parse(localStorage.getItem("todo-list")) || [];
 
 console.log(todos);
 
@@ -20,95 +20,57 @@ filters.forEach((btn) => {
 function showTodo() {
   let liTag = "";
 
-  if (todos.length > 0) {
+  if (todos && Array.isArray(todos)) {
     todos.forEach((todo, id) => {
-      let completed = todo.status === "completed" ? "checked" : "";
-      let liTag_New = "";
+      let completed = todo.status == "completed" ? "checked" : "";
+      let inputTag = "";
 
-      switch (todo.name.toLowerCase()) {
-        case "textarea":
-          liTag_New = `<li class="task">
+      if (todo && todo.category) {
+        switch (todo.category.toLowerCase()) {
+          case "gender":
+            inputTag = `<input type="radio" name="${id}" id="male${id}" value="Male">Male
+                      <input type="radio" name="${id}" id="female${id}" value="Female">Female`;
+            break;
+
+          case "civil status":
+            inputTag = `<select name="${id}" id="${id}">
+                        <option value="Single">Single</option>
+                        <option value="Married">Married</option>
+                        <option value="Divorced">Divorced</option>
+                        <option value="Widowed">Widowed</option>
+                      </select>`;
+            break;
+
+          case "address":
+            inputTag = `<textarea name="${id}" id="${id}" placeholder="Enter ${todo.category}"></textarea>`;
+            break;
+
+          default:
+            inputTag = `<input type="text" name="${id}" id="${id}" placeholder="Enter ${todo.category}">`;
+        }
+
+        let liTag_New = `<li class="task">
                         <label for="${id}">
-                            <p class="${completed}">${todo.name}:</p><br>
-                            <textarea name="${todo.name.trim()}" id="${id}" placeholder="Enter ${todo.name}"></textarea>
+                            <p class="${completed}">${todo.category}</p><br>
+                            ${inputTag}
                         </label>
                         <div class="settings">
                             <i onclick="showMenu(this)" class="uil uil-ellipsis-h"></i>
                             <ul class="task-menu">
-                                <li onclick="editTask(${id}, '${todo.name}')">Edit</li>
-                                <li onclick="deleteTask(${id}, '${todo.status}')">Delete</li>
+                                <li onclick='editTask(${id}, "${todo.category}")'>Edit</li> 
+                                <li onclick='deleteTask(${id})'>Delete</li>
                             </ul>
                         </div>
-                    </li>`;
-          break;
-        case "radio":
-          liTag_New = `<li class="task">
-                        <label for="${id}">
-                            <p class="${completed}">${todo.name}: </p><br>
-                            <input type="radio" id="option1${id}" name="${todo.name.trim()}" value="option1">
-                            <span class="radio-checkmark"></span>
-                            Option1
-                            <input type="radio" id="option2${id}" name="${todo.name.trim()}" value="option2">
-                            <span class="radio-checkmark"></span>
-                            Option2
-                            <input type="radio" id="option3${id}" name="${todo.name.trim()}" value="option3">
-                            <span class="radio-checkmark"></span>
-                            Option3
-                        </label>
-                        <div class="settings">
-                            <i onclick="showMenu(this)" class="uil uil-ellipsis-h"></i>
-                            <ul class="task-menu">
-                                <li onclick="editTask(${id}, '${todo.name}')">Edit</li>
-                                <li onclick="deleteTask(${id}, '${todo.status}')">Delete</li>
-                            </ul>
-                        </div>
-                    </li>`;
-          break;
-        case "select":
-          liTag_New = `<li class="task">
-                        <label for="${id}">
-                            <p class="${completed}">${todo.name}:</p><br>
-                            <select id="${id}" name="${todo.name.trim()}">
-                                <option value="s1">1st Selection</option>
-                                <option value="s2">2nd Selection</option>
-                                <option value="s3">3rd Selection</option>
-                            </select>
-                        </label>
-                        <div class="settings">
-                            <i onclick="showMenu(this)" class="uil uil-ellipsis-h"></i>
-                            <ul class="task-menu">
-                                <li onclick="editTask(${id}, '${todo.name}')">Edit</li>
-                                <li onclick="deleteTask(${id}, '${todo.status}')">Delete</li>
-                            </ul>
-                        </div>
-                    </li>`;
-          break;
-        default:
-          liTag_New = `<li class="task">
-                        <label for="${id}">
-                            <p class="${completed}">${todo.name}:</p><br>
-                            <input type="text" id="${id}" placeholder="Enter ${todo.name}">
-                        </label>
-                        <div class="settings">
-                            <i onclick="showMenu(this)" class="uil uil-ellipsis-h"></i>
-                            <ul class="task-menu">
-                                <li onclick="editTask(${id}, '${todo.name}')">Edit</li>
-                                <li onclick="deleteTask(${id}, '${todo.status}')">Delete</li>
-                            </ul>
-                        </div>
-                    </li>`;
-          break;
+                      </li>`;
+        liTag += liTag_New;
       }
-
-      liTag += liTag_New;
     });
   }
 
-  taskBox.innerHTML = liTag || `<span>No current form elements.</span>`;
-
+  taskBox.innerHTML = liTag || '<span>No current form elements.</span>';
   let checkTask = taskBox.querySelectorAll(".task");
-  clearAll.classList.toggle("active", checkTask.length > 0);
-  taskBox.classList.toggle("overflow", taskBox.offsetHeight >= 300);
+  !checkTask.length ? clearAll.classList.remove("active") : clearAll.classList.add("active");
+  taskBox.offsetHeight >= 300 ? taskBox.classList.add("overflow") : taskBox.classList.remove("overflow");
 }
 
 showTodo();
@@ -117,21 +79,21 @@ function showMenu(selectedTask) {
   let menuDiv = selectedTask.parentElement.lastElementChild;
   menuDiv.classList.toggle("show");
   document.addEventListener("click", (e) => {
-    if (e.target.tagName !== "I" || e.target !== selectedTask) {
+    if (e.target.tagName != "I" || e.target != selectedTask) {
       menuDiv.classList.remove("show");
     }
   });
 }
 
-function editTask(taskId, textName) {
+function editTask(taskId, category) {
   editId = taskId;
   isEditTask = true;
-  taskInput.value = textName;
+  taskInput.value = category;
   taskInput.focus();
   taskInput.classList.add("active");
 }
 
-function deleteTask(deleteId, filter) {
+function deleteTask(deleteId) {
   isEditTask = false;
   todos.splice(deleteId, 1);
   localStorage.setItem("todo-list", JSON.stringify(todos));
@@ -140,20 +102,21 @@ function deleteTask(deleteId, filter) {
 
 clearAll.addEventListener("click", () => {
   isEditTask = false;
-  todos = [];
+  todos.splice(0, todos.length);
   localStorage.setItem("todo-list", JSON.stringify(todos));
   showTodo();
 });
 
 taskInput.addEventListener("keyup", (e) => {
   let userTask = taskInput.value.trim();
-  if (e.key === "Enter" && userTask) {
+  if (e.key == "Enter" && userTask) {
     if (!isEditTask) {
-      let taskInfo = { name: userTask, status: "pending" };
+      todos = !todos ? [] : todos;
+      let taskInfo = { category: userTask, status: "pending" };
       todos.push(taskInfo);
     } else {
       isEditTask = false;
-      todos[editId].name = userTask;
+      todos[editId].category = userTask;
     }
 
     taskInput.value = "";
